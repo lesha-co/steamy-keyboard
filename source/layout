@@ -1,0 +1,60 @@
+KBD_MODE_REGULAR
+
+                       
+   \       b       f   
+  ; &     a c     e g  
+   _       d       h   
+                       
+
+                       
+   z               j   
+  y ?             i k  
+   !               l   
+                       
+
+                       
+   v       r       n   
+  u w     q s     m o  
+   x       t       p   
+                       
+
+KBD_MODE_CAPITALS
+
+                       
+   /       B       F   
+  : @     A C     E G  
+   -       D       H   
+                       
+
+                       
+   Z               J   
+  Y ,             I K  
+   .               L   
+                       
+
+                       
+   V       R       N   
+  U W     Q S     M O  
+   X       T       P   
+                       
+
+KBD_MODE_DIGITS
+
+                       
+   }       2       6   
+  { (     1 3     5 7  
+   )       4       8   
+                       
+
+                       
+   >               0   
+  < [             9 *  
+   ]               +   
+                       
+
+                       
+   #       "
+  = %     ' ~       $  
+   ^       |       `   
+                       
+
