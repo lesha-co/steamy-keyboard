@@ -3,7 +3,8 @@
 #include "kbd.h"
 
 PrintConsole printConsole;
-// just printing whatever they send to us
+// Stub function:
+// just printins whatever is send to it
 void callback(string s){
     consoleSelect(&printConsole);
     printf(s.c_str());
