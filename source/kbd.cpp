@@ -122,9 +122,9 @@ void KBD::printBank(KBDBank bank, xy bankCoords, bool selected){
     if(selected){
         clr = setColor(COLOR_BLACK, COLOR_WHITE);
     }
-    std::cout << position(bankCoords.y, bankCoords.x) << clr << " "+bank.X+" " << resetColor();
-    std::cout << position(bankCoords.y+1, bankCoords.x) << clr << bank.Y+" "+bank.A<< resetColor();
-    std::cout << position(bankCoords.y+2, bankCoords.x) << clr << " "+bank.B+" " << resetColor();
+    cout << position(bankCoords.y, bankCoords.x) << clr << " "+bank.X+" " << resetColor();
+    cout << position(bankCoords.y+1, bankCoords.x) << clr << bank.Y+" "+bank.A<< resetColor();
+    cout << position(bankCoords.y+2, bankCoords.x) << clr << " "+bank.B+" " << resetColor();
 }
 
 KBDLayout KBD::selectedLayout() {
