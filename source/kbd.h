@@ -19,6 +19,9 @@ struct KBDBank{
     string B;
     string X;
     string Y;
+    string id(){
+        return A+B+X+Y;
+    }
 };
 
 struct KBDLayout{
@@ -30,14 +33,8 @@ struct KBDLayout{
     KBDBank BOTTOM_LEFT;
     KBDBank LEFT;
     KBDBank TOP_LEFT;
-    KBDBank getBank(u8 i){
-        KBDBank banks[8] = {
-            TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT
-        };
-        return banks[i];
-    }
-    u8 N_BANKS(){
-        return 8;
+    vector<KBDBank> getBanks(){
+        return {TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT};
     }
 };
 class KBD {
@@ -51,13 +48,14 @@ private:
     PrintConsole pc;
     size_t layout;
     u32 modeSwitchKey;
-    u8 selectedBank;
+    KBDBank selectedBank;
+    KBDBank specialBank;
     bool cpad_held;
     void (*callback)(string);
     void printLayout();
     void printBank(KBDBank , xy , bool);
     KBDLayout selectedLayout();
-    u8 cpad_to_bank_id(u32 keysHeld, u32 keysDown);
+    KBDBank cpad_to_bank_id(u32 keysHeld);
 };
 
 

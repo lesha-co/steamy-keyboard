@@ -24,6 +24,7 @@ KBD::KBD(gfxScreen_t display, void (*cb)(string), vector<KBDLayout> layouts) {
     this->callback = cb;
     this->layouts = layouts;
     this->isEnabled= true;
+    this->specialBank = {"\n", " ", " ", " "};
     consoleInit(display, &this->pc);
     printLayout();
 }
@@ -51,30 +52,26 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
     u32 all_ABXY = (KEY_A | KEY_B | KEY_X | KEY_Y);
     this->cpad_held = (keysHeld & all_cpad)!=0;
     bool abxy_pressed = (keysDown & all_ABXY)!=0 ;
-    if(this->cpad_held){
-        this->selectedBank = cpad_to_bank_id(keysHeld, keysDown);
-    }
+
+    this->selectedBank = cpad_to_bank_id(keysHeld);
+
     // determining buttons
 
     if(keysDown || keysUp){
         printLayout();
     }
     if(abxy_pressed){
-        KBDBank special = {"\n", " ", " ", " "};
-        KBDBank bank = this->cpad_held?
-                       selectedLayout().getBank(this->selectedBank):
-                       special;
         if(keysDown & KEY_A){
-            callback(bank.A);
+            callback(selectedBank.A);
         }
         else if(keysDown & KEY_B){
-            callback(bank.B);
+            callback(selectedBank.B);
         }
         if(keysDown & KEY_X){
-            callback(bank.X);
+            callback(selectedBank.X);
         }
         if(keysDown & KEY_Y){
-            callback(bank.Y);
+            callback(selectedBank.Y);
         }
     }
 
@@ -83,37 +80,37 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
 }
 
 
-u8 KBD::cpad_to_bank_id(u32 keysHeld, u32 keysDown) {
+KBDBank KBD::cpad_to_bank_id(u32 keysHeld) {
     //determines which character bank corresponds to current cpad state
     bool cpad_left  = (keysHeld & KEY_CPAD_LEFT)!=0;
     bool cpad_up    = (keysHeld & KEY_CPAD_UP)!=0;
     bool cpad_right = (keysHeld & KEY_CPAD_RIGHT)!=0;
     bool cpad_down  = (keysHeld & KEY_CPAD_DOWN)!=0;
     if (!cpad_left &&  cpad_up && !cpad_right && !cpad_down){
-        return 0;
+        return this->selectedLayout().TOP;
     }
     if (!cpad_left &&  cpad_up &&  cpad_right && !cpad_down){
-        return 1;
+        return this->selectedLayout().TOP_RIGHT;
     }
     if (!cpad_left && !cpad_up &&  cpad_right && !cpad_down){
-        return 2;
+        return this->selectedLayout().RIGHT;
     }
     if (!cpad_left && !cpad_up &&  cpad_right &&  cpad_down){
-        return 3;
+        return this->selectedLayout().BOTTOM_RIGHT;
     }
     if (!cpad_left && !cpad_up && !cpad_right &&  cpad_down){
-        return 4;
+        return this->selectedLayout().BOTTOM;
     }
     if ( cpad_left && !cpad_up && !cpad_right &&  cpad_down){
-        return 5;
+        return this->selectedLayout().BOTTOM_LEFT;
     }
     if ( cpad_left && !cpad_up && !cpad_right && !cpad_down){
-        return 6;
+        return this->selectedLayout().LEFT;
     }
     if ( cpad_left &&  cpad_up && !cpad_right && !cpad_down){
-        return 7;
+        return this->selectedLayout().LEFT;
     }
-    return 9;
+    return this->specialBank;
 
 }
 
@@ -122,10 +119,11 @@ void KBD::printLayout() {
     KBDBank specials = {"N",">", " ", " "};
     xy coords = {8,4};
     consoleSelect(&this->pc);
-    u8 nbanks = this->selectedLayout().N_BANKS();
-    for (u8 i = 0; i < nbanks; ++i) {
-        bool selected = (i == this->selectedBank && this->cpad_held);
-        printBank(this->selectedLayout().getBank(i), bank_coords[i], selected);
+    vector<KBDBank> banks = this->selectedLayout().getBanks();
+
+    for (u8 i = 0; i < banks.size(); ++i) {
+        bool selected = (banks[i].id() == this->selectedBank.id() && this->cpad_held);
+        printBank(banks[i], bank_coords[i], selected);
     }
     printBank(specials, coords, !this->cpad_held);
 }
