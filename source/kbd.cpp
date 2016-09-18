@@ -96,7 +96,7 @@ KBDBank KBD::cpad_to_bank_id() {
         return this->selectedLayout().LEFT;
     }
     if ( cpad_left &&  cpad_up && !cpad_right && !cpad_down){
-        return this->selectedLayout().LEFT;
+        return this->selectedLayout().TOP_LEFT;
     }
     return this->specialBank;
 
@@ -104,7 +104,7 @@ KBDBank KBD::cpad_to_bank_id() {
 
 void KBD::printLayout() {
     // prints kbd UI
-    KBDBank specials = {"N",">", " ", " "};
+    KBDBank specials = {string({0x14}),string({0x1a}), " ", " "};
     xy coords = {8,4};
     consoleSelect(&this->pc);
     vector<KBDBank> banks = this->selectedLayout().getBanks();
