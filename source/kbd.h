@@ -14,24 +14,39 @@
 
 using namespace std;
 struct xy{u32 x; u32 y;};
-
-class KBDLayout{
-public:
-    KBDLayout(vector<string> v);
-    string getStr(u8, u8);
-    vector<string> getBank(u8);
-    static const u8 N_BANKS = 8;
-    static const u8 N_CELLS = 4;
-private:
-    vector<string> v;
+struct KBDBank{
+    string A;
+    string B;
+    string X;
+    string Y;
 };
 
+struct KBDLayout{
+    KBDBank TOP;
+    KBDBank TOP_RIGHT;
+    KBDBank RIGHT;
+    KBDBank BOTTOM_RIGHT;
+    KBDBank BOTTOM;
+    KBDBank BOTTOM_LEFT;
+    KBDBank LEFT;
+    KBDBank TOP_LEFT;
+    KBDBank getBank(u8 i){
+        KBDBank banks[8] = {
+            TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT
+        };
+        return banks[i];
+    }
+    u8 N_BANKS(){
+        return 8;
+    }
+};
 class KBD {
 public:
     KBD(gfxScreen_t, void (*cb)(string), vector<KBDLayout> layouts);
     void clock(u32 keysHeld, u32 keysDown, u32 keysUp);
-
+    void setEnaled(bool);
 private:
+    bool isEnabled;
     vector<KBDLayout> layouts;
     PrintConsole pc;
     size_t layout;
@@ -40,10 +55,9 @@ private:
     bool cpad_held;
     void (*callback)(string);
     void printLayout();
-    void printBank(vector<string> , xy , bool);
+    void printBank(KBDBank , xy , bool);
     KBDLayout selectedLayout();
     u8 cpad_to_bank_id(u32 keysHeld, u32 keysDown);
-    u8 abxy_to_cell_id(u32 keysHeld, u32 keysDown);
 };
 
 

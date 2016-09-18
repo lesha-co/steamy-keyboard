@@ -23,6 +23,7 @@ KBD::KBD(gfxScreen_t display, void (*cb)(string), vector<KBDLayout> layouts) {
     this->modeSwitchKey = KEY_L;
     this->callback = cb;
     this->layouts = layouts;
+    this->isEnabled= true;
     consoleInit(display, &this->pc);
     printLayout();
 }
@@ -33,9 +34,11 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
      * calls the callback function with character to output
      * @param keysHeld: result of hidKeysHeld() function for current frame
      * @param keysDown: result of hidKeysDown() function for current frame
+     * @param keysUp: result of hidKeysUp() function for current frame
      */
     // rotating modes if modeSwitchKey pressed
 
+    if(!this->isEnabled) return;
     if(keysDown & this->modeSwitchKey){
         this->layout++;
         if(this->layout >= this->layouts.size()){
@@ -57,13 +60,21 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
         printLayout();
     }
     if(abxy_pressed){
-        u8 cell = abxy_to_cell_id(keysHeld, keysDown);
-        if(this->cpad_held){
-            string s = selectedLayout().getStr(this->selectedBank , cell);
-            callback(s);
-        } else {
-            string special[4] = {"\n", " ", " ", " "};
-            callback(special[cell]);
+        KBDBank special = {"\n", " ", " ", " "};
+        KBDBank bank = this->cpad_held?
+                       selectedLayout().getBank(this->selectedBank):
+                       special;
+        if(keysDown & KEY_A){
+            callback(bank.A);
+        }
+        else if(keysDown & KEY_B){
+            callback(bank.B);
+        }
+        if(keysDown & KEY_X){
+            callback(bank.X);
+        }
+        if(keysDown & KEY_Y){
+            callback(bank.Y);
         }
     }
 
@@ -71,22 +82,9 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
     return;
 }
 
-u8 KBD::abxy_to_cell_id(u32 keysHeld, u32 keysDown) {
-    if(keysDown & KEY_A){
-        return 0;
-    }
-    if(keysDown & KEY_B){
-        return 1;
-    }
-    if(keysDown & KEY_X){
-        return 2;
-    }
-    if(keysDown & KEY_Y){
-        return 3;
-    }
-    return 0;
-}
+
 u8 KBD::cpad_to_bank_id(u32 keysHeld, u32 keysDown) {
+    //determines which character bank corresponds to current cpad state
     bool cpad_left  = (keysHeld & KEY_CPAD_LEFT)!=0;
     bool cpad_up    = (keysHeld & KEY_CPAD_UP)!=0;
     bool cpad_right = (keysHeld & KEY_CPAD_RIGHT)!=0;
@@ -115,48 +113,38 @@ u8 KBD::cpad_to_bank_id(u32 keysHeld, u32 keysDown) {
     if ( cpad_left &&  cpad_up && !cpad_right && !cpad_down){
         return 7;
     }
-    return 0;
+    return 9;
 
 }
 
 void KBD::printLayout() {
-    vector<string> specials = {"N",">", " ", " "};
+    // prints kbd UI
+    KBDBank specials = {"N",">", " ", " "};
     xy coords = {8,4};
     consoleSelect(&this->pc);
-    for (u8 i = 0; i < KBDLayout::N_BANKS; ++i) {
+    u8 nbanks = this->selectedLayout().N_BANKS();
+    for (u8 i = 0; i < nbanks; ++i) {
         bool selected = (i == this->selectedBank && this->cpad_held);
         printBank(this->selectedLayout().getBank(i), bank_coords[i], selected);
     }
     printBank(specials, coords, !this->cpad_held);
 }
 
-void KBD::printBank(vector<string> bank, xy bankCoords, bool selected){
+void KBD::printBank(KBDBank bank, xy bankCoords, bool selected){
+    //subroutine to printing character bank
     string clr = setColor(COLOR_WHITE, COLOR_BLACK);
     if(selected){
         clr = setColor(COLOR_BLACK, COLOR_WHITE);
     }
-    std::cout << position(bankCoords.y, bankCoords.x) << clr << " "+bank[2]+" " << resetColor();
-    std::cout << position(bankCoords.y+1, bankCoords.x) << clr << bank[3]+" "+bank[0]<< resetColor();
-    std::cout << position(bankCoords.y+2, bankCoords.x) << clr << " "+bank[1]+" " << resetColor();
-
+    std::cout << position(bankCoords.y, bankCoords.x) << clr << " "+bank.X+" " << resetColor();
+    std::cout << position(bankCoords.y+1, bankCoords.x) << clr << bank.Y+" "+bank.A<< resetColor();
+    std::cout << position(bankCoords.y+2, bankCoords.x) << clr << " "+bank.B+" " << resetColor();
 }
 
 KBDLayout KBD::selectedLayout() {
     return this->layouts[this->layout];
 }
 
-KBDLayout::KBDLayout(vector<string> v) {
-    this->v = v;
-}
-
-string KBDLayout::getStr(u8 bank, u8 cell) {
-    return this->v[bank*N_CELLS+cell];
-}
-
-vector<string> KBDLayout::getBank(u8 bank) {
-    vector<string> slice;
-    for (int cell = 0; cell < N_CELLS; ++cell) {
-        slice.push_back(this->v[bank*N_CELLS+cell]);
-    }
-    return slice;
+void KBD::setEnaled(bool isEnabled) {
+    this->isEnabled = isEnabled;
 }
