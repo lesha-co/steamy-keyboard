@@ -17,12 +17,10 @@ xy bank_coords[8] {
 };
 
 
-KBD::KBD(gfxScreen_t display, void (*cb)(string), vector<KBDLayout> layouts) {
+KBD::KBD(gfxScreen_t display, void (*cb)(string), KBDLayout defaultLayout) {
 
-    this->layout = 0;
-    this->modeSwitchKey = KEY_L;
+    this->defaultLayout = defaultLayout;
     this->callback = cb;
-    this->layouts = layouts;
     this->isEnabled= true;
     this->specialBank = {"\n", " ", " ", " "};
     consoleInit(display, &this->pc);
@@ -37,23 +35,16 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
      * @param keysDown: result of hidKeysDown() function for current frame
      * @param keysUp: result of hidKeysUp() function for current frame
      */
+    this->keysHeld = keysHeld;
     // rotating modes if modeSwitchKey pressed
 
     if(!this->isEnabled) return;
-    if(keysDown & this->modeSwitchKey){
-        this->layout++;
-        if(this->layout >= this->layouts.size()){
-            this->layout = 0;
-        }
-
-    }
-    // determining cpad
     u32 all_cpad = (KEY_CPAD_RIGHT | KEY_CPAD_UP | KEY_CPAD_LEFT | KEY_CPAD_DOWN );
     u32 all_ABXY = (KEY_A | KEY_B | KEY_X | KEY_Y);
     this->cpad_held = (keysHeld & all_cpad)!=0;
     bool abxy_pressed = (keysDown & all_ABXY)!=0 ;
 
-    this->selectedBank = cpad_to_bank_id(keysHeld);
+    this->selectedBank = cpad_to_bank_id();
 
     // determining buttons
 
@@ -74,18 +65,15 @@ void KBD::clock(u32 keysHeld, u32 keysDown, u32 keysUp) {
             callback(selectedBank.Y);
         }
     }
-
-
     return;
 }
 
-
-KBDBank KBD::cpad_to_bank_id(u32 keysHeld) {
+KBDBank KBD::cpad_to_bank_id() {
     //determines which character bank corresponds to current cpad state
-    bool cpad_left  = (keysHeld & KEY_CPAD_LEFT)!=0;
-    bool cpad_up    = (keysHeld & KEY_CPAD_UP)!=0;
-    bool cpad_right = (keysHeld & KEY_CPAD_RIGHT)!=0;
-    bool cpad_down  = (keysHeld & KEY_CPAD_DOWN)!=0;
+    bool cpad_left  = (this->keysHeld & KEY_CPAD_LEFT)!=0;
+    bool cpad_up    = (this->keysHeld & KEY_CPAD_UP)!=0;
+    bool cpad_right = (this->keysHeld & KEY_CPAD_RIGHT)!=0;
+    bool cpad_down  = (this->keysHeld & KEY_CPAD_DOWN)!=0;
     if (!cpad_left &&  cpad_up && !cpad_right && !cpad_down){
         return this->selectedLayout().TOP;
     }
@@ -140,9 +128,26 @@ void KBD::printBank(KBDBank bank, xy bankCoords, bool selected){
 }
 
 KBDLayout KBD::selectedLayout() {
-    return this->layouts[this->layout];
+    // determines which layout is currently active
+    vector<u32> possibleKeys = {KEY_L, KEY_R};
+    for(u32 key : possibleKeys){
+        if(this->keysHeld & key){
+            if(this->layoutMap.find(key) != this->layoutMap.end()){
+                return this->layoutMap[key];
+            }
+        }
+
+    }
+    return this->defaultLayout;
 }
 
 void KBD::setEnaled(bool isEnabled) {
     this->isEnabled = isEnabled;
+}
+
+void KBD::registerLayout(u32 key, KBDLayout l) {
+    // adds layout to possible layouts
+    if(this->layoutMap.find(key) == this->layoutMap.end()){
+        this->layoutMap[key] =  l;
+    }
 }

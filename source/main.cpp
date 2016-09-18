@@ -55,11 +55,9 @@ int main(int argc, char **argv)
         }
     );
     // creating kbd instance and telling it to send all input to callback function
-    KBD kbd(GFX_BOTTOM, callback, vector<KBDLayout> {
-        // also adding layouts
-        layout, layout_caps, layout_digits
-    });
-
+    KBD kbd(GFX_BOTTOM, callback, layout);
+    kbd.registerLayout(KEY_L, layout_caps);
+    kbd.registerLayout(KEY_R, layout_digits);
 
     ///
     /// run once end

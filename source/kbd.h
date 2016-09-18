@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <map>
 #include "string_utils.h"
 
 using namespace std;
@@ -39,15 +40,14 @@ struct KBDLayout{
 };
 class KBD {
 public:
-    KBD(gfxScreen_t, void (*cb)(string), vector<KBDLayout> layouts);
+    KBD(gfxScreen_t, void (*cb)(string), KBDLayout defaultLayout);
     void clock(u32 keysHeld, u32 keysDown, u32 keysUp);
     void setEnaled(bool);
+    void registerLayout(u32 key, KBDLayout l);
 private:
     bool isEnabled;
-    vector<KBDLayout> layouts;
     PrintConsole pc;
-    size_t layout;
-    u32 modeSwitchKey;
+    u32 keysHeld;
     KBDBank selectedBank;
     KBDBank specialBank;
     bool cpad_held;
@@ -55,11 +55,9 @@ private:
     void printLayout();
     void printBank(KBDBank , xy , bool);
     KBDLayout selectedLayout();
-    KBDBank cpad_to_bank_id(u32 keysHeld);
+    KBDLayout defaultLayout;
+    KBDBank cpad_to_bank_id();
+    map<u32, KBDLayout> layoutMap;
 };
-
-
-
-
 
 #endif //MAIN_EXEC_KBD_H
